@@ -1,0 +1,14 @@
+name: Abs01uteUtils
+version: '1.0.0'
+main: com.eseabsolute.abs01uteUtils.Abs01uteUtils
+folia-supported: true
+api-version: '1.21'
+prefix: [ Abs01uteUtils ]
+load: STARTUP
+authors: [ ESEAbsolute ]
+commands:
+  teleporttocursor:
+    description: Teleport player to cursor location
+    usage: /teleporttocursor [Player if CONSOLE] <Distance> <AcceptAir>
+    permission: abs01uteUtils.teleporttocursor
+    permission-message: You do not have permission to use this command.
