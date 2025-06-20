@@ -1,5 +1,6 @@
 package com.eseabsolute.abs01uteUtils;
 
+import com.eseabsolute.abs01uteUtils.commands.RideEntityCommand;
 import com.eseabsolute.abs01uteUtils.commands.TeleportToCursorCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -12,6 +13,7 @@ public final class Abs01uteUtils extends JavaPlugin {
         // Plugin startup logic
 
         this.getCommand("teleporttocursor").setExecutor(new TeleportToCursorCommand());
+        this.getCommand("rideentity").setExecutor(new RideEntityCommand());
     }
 
     public static Abs01uteUtils getInstance() {

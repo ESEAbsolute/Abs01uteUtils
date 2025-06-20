@@ -1,9 +1,9 @@
 name: Abs01uteUtils
-version: '1.0.0'
+version: ${version}
 main: com.eseabsolute.abs01uteUtils.Abs01uteUtils
 folia-supported: true
 api-version: '1.21'
-prefix: [ Abs01uteUtils ]
+prefix: "[Abs01uteUtils]"
 load: STARTUP
 authors: [ ESEAbsolute ]
 commands:
@@ -12,3 +12,7 @@ commands:
     usage: /teleporttocursor [Player if CONSOLE] <Distance> <AcceptAir>
     permission: abs01uteUtils.teleporttocursor
     permission-message: You do not have permission to use this command.
+  rideentity:
+    description: ride a entity on another
+    usage: /rideentity <vehicle> <rider>
+    permission: abs01uteUtils.createentityrider
