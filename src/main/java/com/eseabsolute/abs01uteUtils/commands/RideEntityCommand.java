@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class RideEntityCommand implements CommandExecutor {
     @Override
@@ -37,29 +38,33 @@ public class RideEntityCommand implements CommandExecutor {
         Player player;
         Entity vehicle;
         if (sender instanceof ConsoleCommandSender) {
-            if (args.length == 1) {
-                vehicle = parseEntityForceUUID(args[0]);
-                if (vehicle == null) {
-                    sender.sendMessage("Vehicle not an valid UUID! Fix the UUID issue or add the 2nd argument <executePlayer>");
-                    return;
-                }
-            } else if (args.length == 2) {
-                player = Bukkit.getPlayerExact(args[1]);
-                if (player == null || !player.isOnline()) {
-                    sender.sendMessage("Cannot find online player " + args[0]);
-                    return;
-                }
-                vehicle = parseEntity(args[0], player);
-            } else {
-                sender.sendMessage("Syntax invalid: /rideentity dismount <vehicle> [executePlayer]");
-                return;
-            }
+            // i cannot handle these schedulers
+            sender.sendMessage("CONSOLE TEMPORARILY NOT AVAILABLE");
+            return;
+//            if (args.length == 1) {
+//                vehicle = parseEntityForceUUID(args[0]);
+//                if (vehicle == null) {
+//                    sender.sendMessage("Vehicle not an valid UUID! Fix the UUID issue or add the 2nd argument <executePlayer>");
+//                    return;
+//                }
+//            } else if (args.length == 2) {
+//                player = Bukkit.getPlayerExact(args[1]);
+//                if (player == null || !player.isOnline()) {
+//                    sender.sendMessage("Cannot find online player " + args[0]);
+//                    return;
+//                }
+//                vehicle = parseEntity(args[0], player);
+//            } else {
+//                sender.sendMessage("Syntax invalid: /rideentity dismount <vehicle> [executePlayer]");
+//                return;
+//            }
         } else if (sender instanceof Player) {
             if (args.length != 1) {
                 sender.sendMessage("Syntax invalid: /rideentity dismount <vehicle>");
                 return;
             }
-            vehicle = parseEntity(args[0], sender);
+            player = (Player) sender;
+            vehicle = parseEntity(args[0], player);
         } else {
             sender.sendMessage("Unsupported command sender.");
             return;
@@ -83,41 +88,53 @@ public class RideEntityCommand implements CommandExecutor {
 
     private void rideEntityMountImpl(@NotNull CommandSender sender, @NotNull String[] args) {
         Player player;
-        Entity vehicle;
+        Entity vehicle = null;
 
         if (sender instanceof ConsoleCommandSender) {
-            if (args.length == 2) {
-                vehicle = parseEntityForceUUID(args[0]);
-                if (vehicle == null) {
-                    sender.sendMessage("Vehicle not an valid UUID! Fix the UUID issue or add the 3rd argument <executePlayer>");
-                    return;
-                }
-            } else if (args.length == 3) {
-                player = Bukkit.getPlayerExact(args[2]);
-                if (player == null || !player.isOnline()) {
-                    sender.sendMessage("Cannot find online player " + args[0]);
-                    return;
-                }
-                vehicle = parseEntity(args[0], player);
-            } else {
-                sender.sendMessage("Syntax invalid: /rideentity mount <vehicle> <rider> [executePlayer]");
-                return;
-            }
+            // i cannot handle these schedulers
+            sender.sendMessage("CONSOLE TEMPORARILY NOT AVAILABLE");
+            return;
+//            if (args.length == 2) {
+//                vehicle = parseEntityForceUUID(args[0]);
+//                if (vehicle == null) {
+//                    sender.sendMessage("Vehicle not an valid UUID! Fix the UUID issue or add the 3rd argument <executePlayer>");
+//                    return;
+//                }
+//                player = null;
+//            } else if (args.length == 3) {
+//                player = Bukkit.getPlayerExact(args[2]);
+//                if (player == null || !player.isOnline()) {
+//                    sender.sendMessage("Cannot find online player " + args[0]);
+//                    return;
+//                }
+//            } else {
+//                sender.sendMessage("Syntax invalid: /rideentity mount <vehicle> <rider> [executePlayer]");
+//                return;
+//            }
         } else if (sender instanceof Player) {
             if (args.length != 2) {
                 sender.sendMessage("Syntax invalid: /rideentity mount <vehicle> <rider>");
                 return;
             }
-            vehicle = parseEntity(args[0], sender);
+            player = (Player) sender;
         } else {
             sender.sendMessage("Unsupported command sender.");
             return;
         }
 
+        if (vehicle == null) {
+            vehicle = parseEntity(args[0], player);
+        }
+
+        if (vehicle == null) {
+            sender.sendMessage("Vehicle not found!");
+            return;
+        }
+
         Entity rider = parseEntity(args[1], vehicle);
 
-        if (vehicle == null || rider == null) {
-            sender.sendMessage("Vehicle or rider not found!");
+        if (rider == null) {
+            sender.sendMessage("Rider not found!");
             return;
         }
 
@@ -127,9 +144,9 @@ public class RideEntityCommand implements CommandExecutor {
             rider.getScheduler().run(Abs01uteUtils.getInstance(), task2 -> {
                 Location riderLocation = rider.getLocation();
                 if (riderLocation.getWorld() != vehicleLocation.getWorld() ||
-                        riderLocation.getBlockX() >> 4 != vehicleLocation.getBlockX() >> 4 ||
-                        riderLocation.getBlockZ() >> 4 != vehicleLocation.getBlockZ() >> 4) {
-                    sender.sendMessage("Two entities are not in the same chunk, cannot ride!");
+                        Math.abs(riderLocation.getBlockX() - vehicleLocation.getBlockX()) > 256 ||
+                        Math.abs(riderLocation.getBlockZ() - vehicleLocation.getBlockZ()) > 256 ) {
+                    sender.sendMessage("Two entities are not close to each other (256 blocks), cannot ride!");
                     return;
                 }
                 rider.getScheduler().run(Abs01uteUtils.getInstance(), task3 -> finalVehicle.addPassenger(rider), null);
@@ -151,7 +168,7 @@ public class RideEntityCommand implements CommandExecutor {
         return null;
     }
 
-    private Entity parseEntity(String arg, CommandSender sender) {
+    private Entity parseEntity(String arg, Entity sender) {
         try {
             UUID uuid = UUID.fromString(arg);
             for (World world : Bukkit.getWorlds()) {
@@ -163,11 +180,12 @@ public class RideEntityCommand implements CommandExecutor {
         } catch (IllegalArgumentException ignored) {
         }
 
+        Entity result = null;
         List<Entity> entities = Bukkit.selectEntities(sender, arg);
         if (!entities.isEmpty()) {
-            return entities.getFirst();
+            result = entities.getFirst();
         }
 
-        return null;
+        return result;
     }
 }

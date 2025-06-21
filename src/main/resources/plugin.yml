@@ -15,4 +15,4 @@ commands:
   rideentity:
     description: ride a entity on another
     usage: /rideentity <vehicle> <rider>
-    permission: abs01uteUtils.createentityrider
+    permission: abs01uteUtils.rideentity
